@@ -1,0 +1,2 @@
+# Placeholder so git tracks the gen/ directory.
+# Run `make generate` to populate this directory with the gRPC stubs.

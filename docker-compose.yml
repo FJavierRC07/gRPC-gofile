@@ -1,0 +1,80 @@
+services:
+  # ── file-service ─────────────────────────────────────────────────────────────
+  file-service:
+    build: .
+    restart: unless-stopped
+    ports:
+      # Expose gRPC on the host for local development / grpcurl testing.
+      # Remove in production and communicate only over the internal network.
+      - "50051:50051"
+    environment:
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - CLAMAV_HOST=clamav
+      - CLAMAV_PORT=3310
+      - GRPC_PORT=50051
+    depends_on:
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clamav:
+        condition: service_healthy
+    healthcheck:
+      test: ["/grpc_health_probe", "-addr=:50051"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── MinIO ─────────────────────────────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER:     ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # ── Redis ──────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── ClamAV ─────────────────────────────────────────────────────────────────────
+  # Remove this service (and CLAMAV_PORT env) if antivirus scanning is not needed.
+  clamav:
+    image: clamav/clamav:stable
+    platform: linux/amd64
+    volumes:
+      - clamav-db:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/clamdcheck.sh"]
+      interval: 30s
+      timeout: 15s
+      retries: 20
+      start_period: 5m
+
+volumes:
+  minio-data:
+  redis-data:
+  clamav-db:

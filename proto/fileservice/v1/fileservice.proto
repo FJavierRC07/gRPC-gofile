@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package fileservice.v1;
+
+option go_package = "github.com/ctf-platform/file-service/gen/fileservice/v1;fileservicev1";
+
+import "google/protobuf/timestamp.proto";
+
+// FileService provides object-storage operations backed by a MinIO
+// S3-compatible store, with optional Redis-backed URL/metadata caching and
+// ClamAV malware scanning. All file I/O is fully streamed in 64 KiB chunks
+// so the service never buffers an entire file in memory.
+service FileService {
+  // GetFile streams the object in 64 KiB chunks. The content_type field is
+  // set only on the first chunk of each response stream.
+  rpc GetFile(GetFileRequest) returns (stream GetFileChunk);
+
+  // PutFile receives the file as a client-side stream. The first message
+  // MUST contain PutFileMeta; all subsequent messages MUST contain raw chunk
+  // bytes. Responds with the stored key and total byte count.
+  rpc PutFile(stream PutFileRequest) returns (PutFileResponse);
+
+  // DeleteFile removes an object. Idempotent: deleting a non-existent object
+  // is not an error.
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+
+  // StatFile returns object metadata (content-type, size, last-modified)
+  // without downloading its content. Results are cached in Redis when
+  // available.
+  rpc StatFile(StatFileRequest) returns (StatFileResponse);
+
+  // ListFiles lists objects in a bucket, filtered by an optional key prefix.
+  rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
+
+  // GetPresignedUrl generates a time-limited download URL. Results are cached
+  // in Redis for 80 % of the requested expiry duration to avoid redundant
+  // MinIO round-trips on every request.
+  rpc GetPresignedUrl(PresignedUrlRequest) returns (PresignedUrlResponse);
+
+  // ScanFile streams file content to ClamAV via INSTREAM and returns the
+  // scan result. The caller sends the same 64 KiB chunks it would use for
+  // PutFile, avoiding a double upload when the scan is a pre-condition for
+  // storage. Returns SCAN_RESULT_UNAVAILABLE when ClamAV is not configured
+  // or temporarily unreachable (fail-open: the caller decides what to do).
+  rpc ScanFile(stream ScanFileRequest) returns (ScanFileResponse);
+}
+
+// ── GetFile ───────────────────────────────────────────────────────────────────
+
+message GetFileRequest  { string bucket = 1; string key = 2; }
+
+// One streamed chunk of a GetFile response. content_type is populated only
+// in the first message of the stream.
+message GetFileChunk {
+  bytes  data         = 1;
+  string content_type = 2;
+}
+
+// ── PutFile ───────────────────────────────────────────────────────────────────
+
+message PutFileRequest {
+  oneof payload {
+    PutFileMeta meta  = 1;
+    bytes       chunk = 2;
+  }
+}
+
+message PutFileMeta {
+  string bucket       = 1;
+  string key          = 2;
+  string content_type = 3;
+}
+
+message PutFileResponse {
+  string key        = 1;
+  int64  size_bytes = 2;
+}
+
+// ── DeleteFile ────────────────────────────────────────────────────────────────
+
+message DeleteFileRequest  { string bucket = 1; string key = 2; }
+message DeleteFileResponse {}
+
+// ── StatFile ──────────────────────────────────────────────────────────────────
+
+message StatFileRequest  { string bucket = 1; string key = 2; }
+message StatFileResponse {
+  string                    content_type  = 1;
+  int64                     size_bytes    = 2;
+  google.protobuf.Timestamp last_modified = 3;
+}
+
+// ── ListFiles ─────────────────────────────────────────────────────────────────
+
+message ListFilesRequest  { string bucket = 1; string prefix = 2; }
+message ListFilesResponse { repeated FileInfo files = 1; }
+message FileInfo {
+  string                    key           = 1;
+  int64                     size_bytes    = 2;
+  google.protobuf.Timestamp last_modified = 3;
+}
+
+// ── GetPresignedUrl ───────────────────────────────────────────────────────────
+
+message PresignedUrlRequest {
+  string bucket         = 1;
+  string key            = 2;
+  int32  expiry_seconds = 3;
+}
+message PresignedUrlResponse { string url = 1; }
+
+// ── ScanFile ──────────────────────────────────────────────────────────────────
+
+message ScanFileRequest { bytes chunk = 1; }
+
+enum ScanResult {
+  SCAN_RESULT_UNSPECIFIED = 0;
+  SCAN_RESULT_CLEAN       = 1;
+  SCAN_RESULT_INFECTED    = 2;
+  SCAN_RESULT_UNAVAILABLE = 3;
+}
+
+message ScanFileResponse {
+  ScanResult result     = 1;
+  string     virus_name = 2;
+}

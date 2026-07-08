@@ -1,0 +1,19 @@
+# binaries
+file-service
+*.exe
+
+# generated proto stubs (optional: some projects commit these)
+# gen/
+
+# Go test cache and coverage
+*.test
+*.out
+coverage.html
+
+# Environment
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
