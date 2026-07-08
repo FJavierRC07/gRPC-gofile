@@ -1,17 +1,13 @@
 # file-service
 
-A portable, stack-agnostic gRPC microservice that owns S3-compatible object
-storage I/O and ClamAV malware scanning. Drop it into any project that needs
-MinIO-backed file handling without re-implementing storage, streaming, or
-antivirus logic.
+A portable, stack-agnostic gRPC microservice for S3-compatible object
+storage and ClamAV malware scanning. It provides streamed file transfer,
+metadata lookup, presigned download URLs, optional Redis caching, and
+optional antivirus checks without requiring the consuming application to
+manage storage internals directly.
 
-**Module path:** `github.com/ctf-platform/file-service`
-To use your own path, run a single find-and-replace across the repository:
-
-```bash
-grep -rl 'github.com/ctf-platform/file-service' . | xargs sed -i \
-  's|github.com/ctf-platform/file-service|github.com/your-org/file-service|g'
-```
+This repository currently uses `github.com/example/file-service` as its
+module path. If you fork it, update that path consistently across the repo.
 
 ---
 
@@ -159,7 +155,7 @@ The `gen/` directory is committed so the service builds without running
 # your project's compose.yml
 services:
   file-service:
-    image: ghcr.io/ctf-platform/file-service:latest   # or build: ./file-service
+    image: ghcr.io/your-org/file-service:latest   # or build: ./file-service
     restart: unless-stopped
     environment:
       MINIO_ENDPOINT:   minio
@@ -252,7 +248,7 @@ Use `protoc-gen-java` + `protoc-gen-grpc-java` or the
 ```go
 import (
     "google.golang.org/grpc"
-    pb "github.com/ctf-platform/file-service/gen/fileservice/v1"
+    pb "github.com/example/file-service/gen/fileservice/v1"
 )
 
 conn, _  := grpc.NewClient("file-service:50051", grpc.WithInsecure())

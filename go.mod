@@ -1,4 +1,4 @@
-module github.com/ctf-platform/file-service
+module github.com/example/file-service
 
 go 1.22
 

@@ -18,7 +18,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/ctf-platform/file-service/internal/config"
+	"github.com/example/file-service/internal/config"
 )
 
 // Client wraps a redis.Client. A nil inner client means Redis is not

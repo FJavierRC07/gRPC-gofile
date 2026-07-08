@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ctf-platform/file-service/internal/config"
+	"github.com/example/file-service/internal/config"
 )
 
 // ScanResult is the outcome of a file scan.

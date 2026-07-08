@@ -16,9 +16,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	pb "github.com/ctf-platform/file-service/gen/fileservice/v1"
-	minioclient "github.com/ctf-platform/file-service/internal/minio"
-	"github.com/ctf-platform/file-service/internal/scanner"
+	pb "github.com/example/file-service/gen/fileservice/v1"
+	minioclient "github.com/example/file-service/internal/minio"
+	"github.com/example/file-service/internal/scanner"
 )
 
 const (

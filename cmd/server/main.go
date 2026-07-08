@@ -11,12 +11,12 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	pb "github.com/ctf-platform/file-service/gen/fileservice/v1"
-	"github.com/ctf-platform/file-service/internal/cache"
-	"github.com/ctf-platform/file-service/internal/config"
-	minioclient "github.com/ctf-platform/file-service/internal/minio"
-	"github.com/ctf-platform/file-service/internal/scanner"
-	"github.com/ctf-platform/file-service/internal/server"
+	pb "github.com/example/file-service/gen/fileservice/v1"
+	"github.com/example/file-service/internal/cache"
+	"github.com/example/file-service/internal/config"
+	minioclient "github.com/example/file-service/internal/minio"
+	"github.com/example/file-service/internal/scanner"
+	"github.com/example/file-service/internal/server"
 )
 
 func main() {

@@ -14,7 +14,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
-	"github.com/ctf-platform/file-service/internal/config"
+	"github.com/example/file-service/internal/config"
 )
 
 // ChunkSize is the canonical read/write unit used for streaming. 64 KiB keeps

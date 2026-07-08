@@ -13,8 +13,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	pb "github.com/ctf-platform/file-service/gen/fileservice/v1"
-	"github.com/ctf-platform/file-service/internal/scanner"
+	pb "github.com/example/file-service/gen/fileservice/v1"
+	"github.com/example/file-service/internal/scanner"
 )
 
 type fakeMinio struct {

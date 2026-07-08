@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package fileservice.v1;
 
-option go_package = "github.com/ctf-platform/file-service/gen/fileservice/v1;fileservicev1";
+option go_package = "github.com/example/file-service/gen/fileservice/v1;fileservicev1";
 
 import "google/protobuf/timestamp.proto";
 
